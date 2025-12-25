@@ -60,7 +60,7 @@ export function ProfileHeader({ address, stats }: ProfileHeaderProps) {
                         borderRadius: '50%',
                         cursor: 'pointer'
                     }} onClick={openBasenames}>
-                        <Avatar chain={base} style={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid #000' }} />
+                        <Avatar address={address as `0x${string}`} chain={base} style={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid #000' }} />
                     </div>
                 </Identity>
             </div>
@@ -72,7 +72,7 @@ export function ProfileHeader({ address, stats }: ProfileHeaderProps) {
                         chain={base}
                         className="profile-identity-name"
                     >
-                        <Name chain={base} style={{ fontSize: '2rem', fontWeight: '800', background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }} />
+                        <Name address={address as `0x${string}`} chain={base} style={{ fontSize: '2rem', fontWeight: '800', background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }} />
                     </Identity>
                     <BadgeCheck size={24} style={{ color: '#3b82f6' }} fill="rgba(59, 130, 246, 0.2)" />
                 </div>
