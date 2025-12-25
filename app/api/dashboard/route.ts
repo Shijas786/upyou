@@ -47,10 +47,12 @@ export async function GET(req: NextRequest) {
                 time: tx.timestamp || new Date().toISOString(),
                 hash: tx.hash
             };
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }).filter((t: any) => t.amount !== "0"); // Filter out empty transfers if any
 
         // 2. Pivot "Post Buyers" (Use Transaction Data as proxy for "App Activity")
         // In a real app, you might distinguish specific contract interactions here
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const postBuyersData = onchainBuys.slice(0, 10).map((buy: any) => ({
             creatorName: "Base App",
             buyerAddress: buy.counterparty || "",
@@ -61,6 +63,7 @@ export async function GET(req: NextRequest) {
         }));
 
         // 3. "Verified Buyers" are essentially the same onchain trades
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const verifiedBuyers = onchainBuys.slice(0, 5).map((buy: any) => ({
             followerAddress: {
                 addresses: [buy.counterparty],

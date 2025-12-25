@@ -40,6 +40,7 @@ export async function getOnchainTransactions(address: string) {
         const txs = response.data?.result?.transactions || [];
         console.log(`[CDP] Found ${txs.length} transactions`);
         return txs;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         console.error("CDP Axios Error:", (error as any)?.message || error);
