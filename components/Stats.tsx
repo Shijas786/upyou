@@ -12,10 +12,11 @@ interface DashboardStats {
 
 export function Stats({ realStats }: { realStats?: DashboardStats }) {
     const stats = [
+    const stats = [
         {
-            label: "Network Activity",
+            label: "Followers",
             value: realStats ? realStats.followersCount.toLocaleString() : "0",
-            change: realStats ? "Unique Peers" : "-",
+            change: realStats ? "Social" : "-",
             icon: Users,
             color: "rgba(59, 130, 246, 0.2)",
             textColor: "#3b82f6",

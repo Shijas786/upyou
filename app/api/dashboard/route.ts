@@ -41,7 +41,8 @@ export async function GET(req: NextRequest) {
                         displayName: user.display_name,
                         bio: user.profile?.bio?.text,
                         pfpUrl: user.pfp_url,
-                        fid: user.fid
+                        fid: user.fid,
+                        followerCount: user.follower_count
                     };
                 }
             }
@@ -139,10 +140,9 @@ export async function GET(req: NextRequest) {
                 follower_count: uniqueCounterparties.size,
                 display_name: farcasterProfile?.displayName || (address.slice(0, 6) + "..." + address.slice(-4))
             },
-            profile: farcasterProfile, // Pass full profile object
             stats: {
-                followersCount: uniqueCounterparties.size,
-                activityCount: Math.max(transactions.length, txCount), // Use real onchain nonce if list is short/empty
+                followersCount: farcasterProfile?.followerCount || uniqueCounterparties.size,
+                activityCount: Math.max(transactions.length, txCount),
                 commentersCount: (portfolio as any[]).length, // Repurpose "Commenters" as "Token Holdings"
                 buyersCount: onchainBuys.length,
                 postBuyersCount: postBuyersData.length,
