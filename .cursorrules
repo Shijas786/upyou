@@ -1,0 +1,76 @@
+# Reown AppKit Development Guide
+
+## Project Context
+This is a Next.js application using Reown AppKit (formerly WalletConnect) for wallet connectivity with Wagmi and OnchainKit.
+
+## Key Dependencies
+- @reown/appkit
+- @reown/appkit-adapter-wagmi
+- wagmi
+- viem
+- @tanstack/react-query
+- @coinbase/onchainkit
+
+## Architecture Patterns
+
+### Wallet Configuration
+The wallet setup should follow this pattern:
+1. Configure wagmi with proper chains and transports
+2. Initialize AppKit with project ID from Reown Dashboard
+3. Wrap app with proper providers (WagmiProvider, QueryClientProvider)
+4. Use SSR-safe patterns for Next.js
+
+### Provider Setup
+```typescript
+// Use 'use client' directive for client components
+'use client'
+
+// Proper provider hierarchy:
+// 1. WagmiProvider (with wagmi config)
+// 2. QueryClientProvider (for React Query)
+// 3. AppKit context (if needed)
+```
+
+### Common Patterns
+- Always use `createConfig` from wagmi for configuration
+- Use `http()` transport for public RPC endpoints
+- Configure metadata for wallet connection UI
+- Handle SSR properly with dynamic imports if needed
+
+## Type Safety
+- Use proper TypeScript types from wagmi and viem
+- Chain types should be imported from 'wagmi/chains'
+- Address types should use `0x${string}` format
+- Use proper generics for contract interactions
+
+## Best Practices
+1. **Environment Variables**: Store sensitive keys (Project ID, API keys) in .env files
+2. **Error Handling**: Always wrap wallet operations in try-catch
+3. **Loading States**: Show proper loading/connecting states
+4. **Network Switching**: Handle network changes gracefully
+5. **Disconnection**: Provide clear disconnect functionality
+
+## Common Issues & Solutions
+
+### Hydration Errors
+- Use 'use client' directive
+- Avoid rendering wallet UI on server
+- Use useEffect for client-only operations
+
+### Connection Issues
+- Verify Project ID is correct
+- Check network configuration
+- Ensure proper provider hierarchy
+
+### Type Errors
+- Import types from correct packages
+- Use proper chain types
+- Validate address formats
+
+## Reown Dashboard
+Project ID and configuration: https://dashboard.reown.com
+
+## Documentation
+- AppKit Docs: https://docs.reown.com/appkit
+- Wagmi Docs: https://wagmi.sh
+- Viem Docs: https://viem.sh
