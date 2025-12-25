@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
         const postActivity = await getPostActivity(topFids);
 
         // Filter "Post Buyers" specifically from token transfers
-        const wowBuyers = postActivity?.Socials?.Social?.map((s: any) => ({
+        const postBuyersData = postActivity?.Socials?.Social?.map((s: any) => ({
             fid: s.userId,
             name: s.profileName,
             buys: s.tokenTransfers?.map((t: any) => ({
@@ -55,13 +55,13 @@ export async function GET(req: NextRequest) {
                 activityCount: activity.length,
                 commentersCount: commenters.length,
                 buyersCount: buyers?.length || 0,
-                wowBuyersCount: wowBuyers.length,
+                postBuyersCount: postBuyersData.length,
             },
             followers: followers.slice(0, 5),
             activity: activity.slice(0, 5),
             commenters: commenters.slice(0, 5),
             buyers: buyers?.slice(0, 5) || [],
-            wowBuyers // New "Post Buyers" logic data
+            postBuyers: postBuyersData
         });
 
     } catch (error) {

@@ -19,9 +19,9 @@ interface BuyerData {
     };
 }
 
-export function BuyerSection({ data, wowData }: { data?: BuyerData[], wowData?: any[] }) {
-    // Combine traditional holders with new "Post Buyers" (Wow.xyz double-tappers)
-    const postBuyers = wowData ? wowData.flatMap(w =>
+export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], postBuyersData?: any[] }) {
+    // Combine traditional holders with new "Post Buyers" (Base App double-tap logic)
+    const postBuyers = postBuyersData ? postBuyersData.flatMap(w =>
         w.buys?.map((b: any) => ({
             address: "", // We might not have the buyer's address directly here but we have the context
             fallbackName: `Buyer of ${w.name}'s Post`,

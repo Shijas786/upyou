@@ -3,7 +3,7 @@ import axios from "axios";
 const AIRSTACK_API_URL = "https://api.airstack.xyz/gql";
 
 /**
- * Fetches "Post Buyers" logic based on Wow.xyz / Social Trade activity on Base.
+ * Fetches "Post Buyers" logic based on Base App Social Trade activity on Base.
  * Specifically looks for users who have bought tokens associated with the given FIDs.
  */
 export async function getPostActivity(fids: number[]) {

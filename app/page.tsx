@@ -14,7 +14,7 @@ export default function Home() {
     stats?: any;
     followers?: any[];
     buyers?: any[];
-    wowBuyers?: any[];
+    postBuyers?: any[];
   } | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -72,7 +72,7 @@ export default function Home() {
 
       {loading && (
         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--accent-blue)' }}>
-          <p className="animate-pulse">Tracking Wow.xyz Double-Tap Interactions...</p>
+          <p className="animate-pulse">Tracking Base App Double-Tap Interactions...</p>
         </div>
       )}
 
@@ -85,7 +85,7 @@ export default function Home() {
           <FollowerList data={dashboardData?.followers} />
         </div>
         <aside className="sidebar">
-          <BuyerSection data={dashboardData?.buyers} wowData={dashboardData?.wowBuyers} />
+          <BuyerSection data={dashboardData?.buyers} postBuyersData={dashboardData?.postBuyers} />
         </aside>
       </section>
 
