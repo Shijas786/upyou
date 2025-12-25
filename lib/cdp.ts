@@ -66,3 +66,25 @@ export async function getOnchainTokenBalances(address: string) {
         return [];
     }
 }
+
+export async function getTransactionCount(address: string) {
+    const url = getCDPUrl();
+    if (!url) return 0;
+
+    try {
+        const response = await axios.post(url, {
+            jsonrpc: "2.0",
+            id: 1,
+            method: "eth_getTransactionCount",
+            params: [address, "latest"]
+        });
+        
+        if (response.data.result) {
+            return parseInt(response.data.result, 16);
+        }
+        return 0;
+    } catch (error) {
+        console.error("Error fetching tx count:", error);
+        return 0;
+    }
+}

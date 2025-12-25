@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOnchainTransactions } from "@/lib/cdp";
+import { getOnchainTransactions, getTransactionCount } from "@/lib/cdp";
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
@@ -12,8 +12,12 @@ export async function GET(req: NextRequest) {
     console.log(`[API] Fetching onchain dashboard for address: ${address}`);
 
     try {
-        // Fetch Onchain Transactions Only
-        const transactions = await getOnchainTransactions(address);
+        // Fetch Onchain Transactions and Count in parallel
+        // If getting transactions fails (e.g. API limits), at least we get the count
+        const [transactions, txCount] = await Promise.all([
+            getOnchainTransactions(address),
+            getTransactionCount(address)
+        ]);
 
         // --- PROCESS DATA for Dashboard ---
 
@@ -85,7 +89,7 @@ export async function GET(req: NextRequest) {
             },
             stats: {
                 followersCount: uniqueCounterparties.size,
-                activityCount: transactions.length,
+                activityCount: Math.max(transactions.length, txCount), // Use real onchain nonce if list is short/empty
                 commentersCount: Math.floor(uniqueCounterparties.size * 0.3), // Mock metric based on verified interactions
                 buyersCount: onchainBuys.length,
                 postBuyersCount: postBuyersData.length,
