@@ -12,21 +12,27 @@ export async function GET(req: NextRequest) {
     console.log(`[API] Fetching onchain dashboard for address: ${address}`);
 
     try {
-        // Fetch Onchain Transactions, Count, and Balances in parallel
-        const [transactions, txCount, portfolio] = await Promise.all([
+        // Fetch Onchain Transactions, Count, and Balances
+        // We use Promise.allSettled to ensure one failure doesn't kill the whole request
+        const [transactionsRes, txCountRes, portfolioRes] = await Promise.allSettled([
             getOnchainTransactions(address),
             getTransactionCount(address),
             getOnchainTokenBalances(address)
         ]);
 
+        const transactions = transactionsRes.status === 'fulfilled' ? transactionsRes.value : [];
+        const txCount = txCountRes.status === 'fulfilled' ? txCountRes.value : 0;
+        const portfolio = portfolioRes.status === 'fulfilled' ? portfolioRes.value : [];
+
+        console.log(`[API] Fetched ${transactions.length} transactions, ${portfolio.length} tokens`);
+
         // --- FETCH FARCASTER PROFILE (Via generic Neynar or public API) ---
         let farcasterProfile = null;
         try {
-            // Using a generic public call or relying on client-side OnchainKit is safer for non-authed, 
-            // but if we have a key (env) we use it. fallback to empty.
-            const neynarKey = process.env.NEYNAR_API_KEY || "NEYNAR_API_DOCS"; // Fallback to free tier doc key for testing
-            const fetch = (await import("node-fetch")).default; // Dynamic import for fetch if needed or just use built-in in Next 15+
+            const neynarKey = process.env.NEYNAR_API_KEY || "NEYNAR_API_DOCS";
+            const fetch = (await import("node-fetch")).default;
 
+            console.log(`[API] Fetching Farcaster profile for ${address}`);
             const neynarRes = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`, {
                 headers: { 'accept': 'application/json', 'api_key': neynarKey }
             });
@@ -44,10 +50,15 @@ export async function GET(req: NextRequest) {
                         fid: user.fid,
                         followerCount: user.follower_count
                     };
+                    console.log(`[API] Found Farcaster profile: @${user.username}`);
+                } else {
+                    console.log(`[API] No Farcaster profile found for ${address}`);
                 }
+            } else {
+                console.log(`[API] Neynar API returned ${neynarRes.status}`);
             }
         } catch (e) {
-            console.log("Farcaster fetch failed (non-critical):", e);
+            console.log("[API] Farcaster fetch failed (non-critical):", e);
         }
 
         // --- PROCESS DATA for Dashboard ---

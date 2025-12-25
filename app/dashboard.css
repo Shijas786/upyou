@@ -1,68 +1,87 @@
 :root {
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --accent-blue: #3b82f6;
-    --accent-green: #10b981;
-    --accent-purple: #8b5cf6;
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.6);
-    --dashboard-bg: #050505;
+    --bg-primary: #fafafa;
+    --bg-secondary: #ffffff;
+    --text-primary: #0a0a0a;
+    --text-secondary: #737373;
+    --border-subtle: #e5e5e5;
+    --accent: #0066ff;
+    --accent-hover: #0052cc;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #0a0a0a;
+        --bg-secondary: #171717;
+        --text-primary: #fafafa;
+        --text-secondary: #a3a3a3;
+        --border-subtle: #262626;
+        --accent: #3b82f6;
+        --accent-hover: #60a5fa;
+    }
 }
 
 body {
-    background: var(--dashboard-bg);
-    background-image:
-        radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+    background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
 }
 
 .dashboard-container {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 3rem 1.5rem;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 4rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .logo-section h1 {
-    font-size: 2rem;
-    font-weight: 800;
-    background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0.4));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
     letter-spacing: -0.02em;
 }
 
+.logo-section p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.gradient-text {
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: unset;
+}
+
 .connect-wallet-btn {
-    background-color: var(--accent-blue) !important;
+    background-color: var(--accent) !important;
     color: white !important;
-    border-radius: 100px !important;
-    padding: 0.5rem 1.5rem !important;
+    border-radius: 8px !important;
+    padding: 0.625rem 1.25rem !important;
     border: none !important;
     cursor: pointer !important;
-    font-weight: 600 !important;
-    transition: all 0.2s ease !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    transition: all 0.15s ease !important;
 }
 
 .connect-wallet-btn:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+    background-color: var(--accent-hover) !important;
 }
 
 .section-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 1.5rem;
 }
 
 @media (max-width: 1024px) {
@@ -72,78 +91,83 @@ body {
 }
 
 .glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    padding: 2rem;
-    transition: all 0.3s ease;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.15s ease;
 }
 
 .glass-card:hover {
-    border-color: rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--text-secondary);
 }
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
     margin-bottom: 2rem;
 }
 
 .stat-item {
-    padding: 1.5rem;
+    padding: 1.25rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
 }
 
 .stat-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .icon-wrapper {
-    padding: 0.75rem;
-    border-radius: 16px;
+    padding: 0.5rem;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: var(--bg-primary);
 }
 
 .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0.25rem 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0.25rem 0;
+    color: var(--text-primary);
 }
 
 .stat-label {
     color: var(--text-secondary);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 500;
 }
 
 .change-badge {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.6875rem;
+    font-weight: 500;
     padding: 0.25rem 0.5rem;
-    border-radius: 8px;
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--accent-green);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
 }
 
 .follower-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
-    border-radius: 16px;
-    margin-bottom: 0.75rem;
-    transition: background 0.2s ease;
+    padding: 0.875rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    transition: background 0.15s ease;
+    border: 1px solid transparent;
 }
 
 .follower-item:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-primary);
+    border-color: var(--border-subtle);
 }
 
 .onchain-identity,
@@ -155,40 +179,73 @@ body {
     align-items: center !important;
 }
 
-/* Ensure OnchainKit components don't have default white backgrounds */
 [data-onchainkit-avatar] {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid var(--glass-border) !important;
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-subtle) !important;
 }
 
 [data-onchainkit-name] {
-    color: white !important;
+    color: var(--text-primary) !important;
 }
 
 .badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 100px;
-    font-size: 0.65rem;
-    font-weight: 700;
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.6875rem;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.03em;
 }
 
 .badge-active {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--accent-green);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
 }
 
 .buyer-card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.15s ease;
+}
+
+.buyer-card:hover {
+    border-color: var(--text-secondary);
 }
 
 .price-tag {
-    color: var(--accent-green);
-    font-weight: 700;
+    color: var(--accent);
+    font-weight: 600;
     font-size: 0.875rem;
+}
+
+.profile-header {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    margin-bottom: 2rem !important;
+}
+
+.profile-address {
+    color: var(--text-secondary) !important;
+    font-size: 0.875rem !important;
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
