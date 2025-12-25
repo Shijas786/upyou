@@ -38,8 +38,9 @@ interface PostBuyerData {
     time: string | number | Date;
 }
 
-export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], postBuyersData?: PostBuyerData[] }) {
-    const [activeTab, setActiveTab] = useState<'trade' | 'talk'>('trade');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function BuyerSection({ data, postBuyersData, portfolio }: { data?: BuyerData[], postBuyersData?: PostBuyerData[], portfolio?: any[] }) {
+    const [activeTab, setActiveTab] = useState<'trade' | 'portfolio'>('trade');
 
     // --- TRADE LOGIC (Double Tap / Buy) ---
     const postBuyers: PostBuyerItem[] = postBuyersData ? postBuyersData.map((pb) => ({
@@ -69,21 +70,14 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
     const tradeDataRaw = [...postBuyers, ...traditionalBuyers];
     const tradeData = tradeDataRaw; // No fallback
 
-    // --- TALK LOGIC (Mentions / Comments) ---
-    const talkData = [
-        {
-            fallbackName: "jesse.base.eth",
-            message: "This post is ungovernable! 🦝",
-            time: "2m ago",
-            isHighValue: true
-        },
-        {
-            fallbackName: "basefan.eth",
-            message: "L2 summer is here",
-            time: "15m ago",
-            isHighValue: false
-        }
-    ];
+    // --- PORTFOLIO LOGIC ---
+    const portfolioItems = portfolio?.map(p => ({
+        symbol: p.asset.symbol || "UNK",
+        name: p.asset.name || "Unknown Token",
+        amount: p.value,
+        decimals: p.asset.decimals || 18,
+        image: p.asset.image_url,
+    })) || [];
 
     return (
         <div className="glass-card" style={{ height: '100%', padding: '0' }}>
@@ -106,21 +100,21 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
                     Trade
                 </button>
                 <button
-                    onClick={() => setActiveTab('talk')}
+                    onClick={() => setActiveTab('portfolio')}
                     style={{
                         flex: 1,
                         padding: '1.25rem',
                         background: 'none',
                         border: 'none',
-                        color: activeTab === 'talk' ? '#fff' : 'rgba(255,255,255,0.4)',
-                        borderBottom: activeTab === 'talk' ? '2px solid #fff' : 'none',
+                        color: activeTab === 'portfolio' ? '#fff' : 'rgba(255,255,255,0.4)',
+                        borderBottom: activeTab === 'portfolio' ? '2px solid #fff' : 'none',
                         fontWeight: '600',
                         fontSize: '0.9rem',
                         cursor: 'pointer',
                         transition: 'all 0.2s'
                     }}
                 >
-                    Talk
+                    Portfolio
                 </button>
             </div>
 
@@ -195,29 +189,38 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
                         </motion.div>
                     ) : (
                         <motion.div
-                            key="talk-list"
+                            key="portfolio-list"
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -10 }}
-                            className="talk-list"
+                            className="portfolio-list"
                         >
-                            {talkData.map((talk, index) => (
-                                <div key={index} className="buyer-card" style={{ marginBottom: '1rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <MessageCircle size={16} style={{ color: '#3b82f6' }} />
+                            {portfolioItems.length > 0 ? (
+                                portfolioItems.map((token, index) => (
+                                    <div key={index} className="buyer-card" style={{ marginBottom: '1rem', borderLeft: '3px solid #10b981' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                            {token.image ? (
+                                                <img src={token.image} alt={token.symbol} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                            ) : (
+                                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <TrendingUp size={16} />
+                                                </div>
+                                            )}
+                                            <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>{token.name}</span>
+                                            <span style={{ fontSize: '0.75rem', color: '#10b981', marginLeft: 'auto', fontWeight: 'bold' }}>
+                                                {(BigInt(token.amount) / BigInt(10 ** 18)).toString()} {token.symbol}
+                                            </span>
                                         </div>
-                                        <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>{talk.fallbackName}</span>
-                                        <span style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)', marginLeft: 'auto' }}>{talk.time}</span>
+                                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+                                            Balance: {token.amount} (Wei)
+                                        </p>
                                     </div>
-                                    <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', lineHeight: '1.4' }}>{talk.message}</p>
-                                    {talk.isHighValue && (
-                                        <div style={{ marginTop: '0.75rem', fontSize: '0.7rem', color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <TrendingUp size={12} /> High Engagement Comment
-                                        </div>
-                                    )}
+                                ))
+                            ) : (
+                                <div style={{ padding: '2rem', textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
+                                    No verifiable tokens found.
                                 </div>
-                            ))}
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>

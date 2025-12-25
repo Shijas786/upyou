@@ -102,8 +102,22 @@ export async function getOnchainTransactions(address: string) {
     }
 }
 
+
 export async function getOnchainTokenBalances(address: string) {
-    const url = getCDPUrl();
+    let url = getCDPUrl();
+    const token = generateCDPToken("POST", "rpc/v1/base");
+
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+    };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    } else {
+        const apiKey = process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY;
+        if (apiKey) url = `${url}/${apiKey}`;
+    }
+
     if (!url) return [];
 
     try {
@@ -111,8 +125,13 @@ export async function getOnchainTokenBalances(address: string) {
             jsonrpc: "2.0",
             id: 1,
             method: "cdp_listAddressTokenBalances",
-            params: [{ address }]
-        });
+            params: [{ address, page_size: 10 }]
+        }, { headers, timeout: 5000 });
+
+        if (response.data?.error) {
+            console.error("CDP Token Balances Error:", response.data.error);
+            return [];
+        }
 
         return response.data?.result?.balances || [];
     } catch (error) {
@@ -122,7 +141,16 @@ export async function getOnchainTokenBalances(address: string) {
 }
 
 export async function getTransactionCount(address: string) {
-    const url = getCDPUrl();
+    let url = getCDPUrl();
+    // Use simple URL key for eth_ methods usually, but JWT works too.
+    // Let's stick to the same pattern for consistency if possible, 
+    // BUT eth_getTransactionCount is a standard RPC that doesn't NEED advanced auth.
+    // However, the base URL logic above might strip the key if we don't handle it.
+
+    // Fallback logic copy-paste short version for now as this is a simple call
+    const apiKey = process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY;
+    if (apiKey) url = `${url}/${apiKey}`;
+
     if (!url) return 0;
 
     try {

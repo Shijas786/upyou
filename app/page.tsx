@@ -125,7 +125,11 @@ export default function Home() {
           <FollowerList data={dashboardData?.followers as any[]} />
         </div>
         <aside className="sidebar">
-          <BuyerSection data={dashboardData?.buyers} postBuyersData={dashboardData?.postBuyers} />
+          <BuyerSection
+            data={dashboardData?.buyers}
+            postBuyersData={dashboardData?.postBuyers}
+            portfolio={(dashboardData as any)?.portfolio}
+          />
         </aside>
       </section>
 

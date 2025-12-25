@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOnchainTransactions, getTransactionCount } from "@/lib/cdp";
+import { getOnchainTransactions, getTransactionCount, getOnchainTokenBalances } from "@/lib/cdp";
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
@@ -12,11 +12,11 @@ export async function GET(req: NextRequest) {
     console.log(`[API] Fetching onchain dashboard for address: ${address}`);
 
     try {
-        // Fetch Onchain Transactions and Count in parallel
-        // If getting transactions fails (e.g. API limits), at least we get the count
-        const [transactions, txCount] = await Promise.all([
+        // Fetch Onchain Transactions, Count, and Balances in parallel
+        const [transactions, txCount, portfolio] = await Promise.all([
             getOnchainTransactions(address),
-            getTransactionCount(address)
+            getTransactionCount(address),
+            getOnchainTokenBalances(address)
         ]);
 
         // --- PROCESS DATA for Dashboard ---
@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
             stats: {
                 followersCount: uniqueCounterparties.size,
                 activityCount: Math.max(transactions.length, txCount), // Use real onchain nonce if list is short/empty
-                commentersCount: Math.floor(uniqueCounterparties.size * 0.3), // Mock metric based on verified interactions
+                commentersCount: (portfolio as any[]).length, // Repurpose "Commenters" as "Token Holdings"
                 buyersCount: onchainBuys.length,
                 postBuyersCount: postBuyersData.length,
             },
@@ -99,7 +99,8 @@ export async function GET(req: NextRequest) {
             commenters: [], // No Farcaster comments
             buyers: verifiedBuyers,
             postBuyers: postBuyersData,
-            onchainHistory: onchainBuys.slice(0, 10)
+            onchainHistory: onchainBuys.slice(0, 10),
+            portfolio: portfolio // Pass real portfolio data
         });
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
