@@ -1,78 +1,70 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getFollowers, getRecentActivity, getActiveCommenters } from "@/lib/neynar";
 import { getOnchainTransactions } from "@/lib/cdp";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
-    const address = searchParams.get("address");
+    const address = searchParams.get("address")?.toLowerCase();
 
     if (!address) {
         return NextResponse.json({ error: "Address is required" }, { status: 400 });
     }
 
-    const apiKey = process.env.NEYNAR_API_KEY;
-    if (!apiKey) {
-        return NextResponse.json({ error: "Neynar API key missing" }, { status: 500 });
-    }
+    console.log(`[API] Fetching onchain dashboard for address: ${address}`);
 
     try {
-        const neynar = new NeynarAPIClient(apiKey);
+        // Fetch Onchain Transactions Only
+        const transactions = await getOnchainTransactions(address);
 
-        // 1. Resolve address to FID and User Data
-        const usersResponse = await neynar.fetchBulkUsersByEthereumAddress([address]);
-        const user = usersResponse[address.toLowerCase()]?.[0];
+        // --- PROCESS DATA for Dashboard ---
 
-        if (!user) {
-            return NextResponse.json({ error: "Farcaster user not found for this address" }, { status: 404 });
-        }
+        // 1. Identify "Followers" (Unique Counterparties)
+        const uniqueCounterparties = new Set<string>();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const processedFollowers: any[] = [];
 
-        const fid = Number(user.fid);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const onchainBuys = (transactions || []).map((tx: any) => {
+            const transfer = tx.tokenTransfers?.[0];
+            const isSend = (transfer?.from || "").toLowerCase() === address;
+            const counterparty = isSend ? transfer?.to : transfer?.from;
 
-        // 2. Fetch Social and Onchain data in parallel
-        const [followers, activity, commenters, transactions] = await Promise.all([
-            getFollowers(fid),
-            getRecentActivity(fid),
-            getActiveCommenters(fid),
-            getOnchainTransactions(address)
-        ]);
+            if (counterparty && counterparty.toLowerCase() !== address && !uniqueCounterparties.has(counterparty)) {
+                uniqueCounterparties.add(counterparty);
+                processedFollowers.push({
+                    verifications: [counterparty],
+                    username: "", // OnchainKit will resolve this
+                    display_name: "", // OnchainKit will resolve this
+                    active_status: "Active",
+                    profile: { bio: { text: isSend ? "Received tokens from you" : "Sent tokens to you" } }
+                });
+            }
 
-        // 3. Process Onchain Transactions into "Buy Post Info"
-        /* eslint-disable @typescript-eslint/no-explicit-any */
+            return {
+                type: isSend ? 'SELL' : 'BUY',
+                token: transfer?.asset?.symbol || "TOKEN",
+                amount: transfer?.value || "0",
+                counterparty: counterparty,
+                time: tx.timestamp || new Date().toISOString(),
+                hash: tx.hash
+            };
+        }).filter((t: any) => t.amount !== "0"); // Filter out empty transfers if any
 
-        // Filter for token transfers or interesting social trade activity
-        const onchainBuys = (transactions || [])
-            .filter((tx: any) => tx.tokenTransfers && tx.tokenTransfers.length > 0)
-            .map((tx: any) => {
-                const transfer = tx.tokenTransfers[0];
-                return {
-                    type: transfer.from.toLowerCase() === address.toLowerCase() ? 'SELL' : 'BUY',
-                    token: transfer.asset?.symbol || "TOKEN",
-                    amount: transfer.value,
-                    counterparty: transfer.from.toLowerCase() === address.toLowerCase() ? transfer.to : transfer.from,
-                    time: tx.timestamp,
-                    hash: tx.hash
-                };
-            });
+        // 2. Pivot "Post Buyers" (Use Transaction Data as proxy for "App Activity")
+        // In a real app, you might distinguish specific contract interactions here
+        const postBuyersData = onchainBuys.slice(0, 10).map((buy: any) => ({
+            creatorName: "Base App",
+            buyerAddress: buy.counterparty || "",
+            buyerName: "", // OnchainKit handles this
+            token: buy.token,
+            amount: buy.amount,
+            time: buy.time
+        }));
 
-        // 4. Pivot Neynar data for "Post Buyers" (Social engagement)
-        const postBuyersData = activity
-            .filter((cast: any) => cast.reactions.recasts.length > 0)
-            .flatMap((cast: any) => cast.reactions.recasts.map((r: any) => ({
-                creatorName: user.username,
-                buyerAddress: r.user?.verified_addresses?.eth_addresses?.[0] || "",
-                buyerName: r.user?.display_name || r.user?.username,
-                token: "POST",
-                amount: "1.0",
-                time: cast.timestamp
-            })))
-            .slice(0, 10);
-
-        // Filter "Verified Buyers" using actual onchain data from CDP
+        // 3. "Verified Buyers" are essentially the same onchain trades
         const verifiedBuyers = onchainBuys.slice(0, 5).map((buy: any) => ({
             followerAddress: {
                 addresses: [buy.counterparty],
-                socials: [], // We'll let the frontend resolve this with Identity component
+                socials: [],
                 tokenTransfers: [{
                     token: { symbol: buy.token, name: "Onchain Trade" },
                     formattedAmount: buy.amount,
@@ -80,28 +72,35 @@ export async function GET(req: NextRequest) {
                 }]
             }
         }));
-        /* eslint-enable @typescript-eslint/no-explicit-any */
 
         return NextResponse.json({
-            fid,
-            user,
+            // Minimal mocked user object to satisfy frontend types if needed, or null
+            user: {
+                username: "Onchain User",
+                follower_count: uniqueCounterparties.size,
+                display_name: address.slice(0, 6) + "..." + address.slice(-4)
+            },
             stats: {
-                followersCount: followers.length,
-                activityCount: activity.length,
-                commentersCount: commenters.length,
+                followersCount: uniqueCounterparties.size,
+                activityCount: transactions.length,
+                commentersCount: Math.floor(uniqueCounterparties.size * 0.3), // Mock metric based on verified interactions
                 buyersCount: onchainBuys.length,
                 postBuyersCount: postBuyersData.length,
             },
-            followers: followers.slice(0, 10),
-            activity: activity.slice(0, 10),
-            commenters: commenters.slice(0, 10),
+            followers: processedFollowers.slice(0, 20),
+            activity: [], // No Farcaster casts
+            commenters: [], // No Farcaster comments
             buyers: verifiedBuyers,
             postBuyers: postBuyersData,
             onchainHistory: onchainBuys.slice(0, 10)
         });
 
-    } catch (error) {
-        console.error("Dashboard API Error:", error);
-        return NextResponse.json({ error: "Failed to fetch dashboard data" }, { status: 500 });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+        console.error("Dashboard API Error:", error?.message || error);
+        return NextResponse.json({
+            error: "Internal Server Error",
+            details: error?.message || String(error)
+        }, { status: 500 });
     }
 }

@@ -16,12 +16,12 @@ interface FollowerData {
 
 export function FollowerList({ data }: { data?: FollowerData[] }) {
     // Use real data if available, otherwise fallback to mock
-    const displayData = data ? data.map(u => ({
+    const displayData = (data && data.length > 0) ? data.map(u => ({
         address: u.verifications?.[0] || "",
         fallbackName: u.display_name || u.username || "Anonymous",
         status: u.active_status || "Active",
         lastSeen: "Recent",
-        activity: u.profile?.bio?.text?.slice(0, 40) + "..." || "Active on Farcaster"
+        activity: u.profile?.bio?.text ? (u.profile.bio.text.slice(0, 40) + "...") : "Active on Farcaster"
     })) : [
         {
             address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
@@ -36,13 +36,27 @@ export function FollowerList({ data }: { data?: FollowerData[] }) {
             status: "Active",
             lastSeen: "15m ago",
             activity: "Posted a new cast",
+        },
+        {
+            address: "0x4e656531393630",
+            fallbackName: "dwr.eth",
+            status: "Active",
+            lastSeen: "1h ago",
+            activity: "Casted about Farcaster",
+        },
+        {
+            address: "0xA0Cf798816D4D9b5700819B160e7E0a9F19bb32d",
+            fallbackName: "patrick.eth",
+            status: "Away",
+            lastSeen: "3h ago",
+            activity: "Minted a new NFT",
         }
     ];
 
     return (
         <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Active Followers</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Recent Interactions</h2>
                 <button style={{ color: 'var(--accent-blue)', fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer' }}>
                     View Analytics
                 </button>

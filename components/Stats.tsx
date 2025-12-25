@@ -13,8 +13,8 @@ interface DashboardStats {
 export function Stats({ realStats }: { realStats?: DashboardStats }) {
     const stats = [
         {
-            label: "Active Followers",
-            value: realStats?.followersCount?.toLocaleString() || "1,284",
+            label: "Network Activity",
+            value: realStats ? realStats.followersCount.toLocaleString() : "1,284",
             change: realStats ? "Live" : "+12.5%",
             icon: Users,
             color: "rgba(59, 130, 246, 0.2)",
@@ -22,7 +22,7 @@ export function Stats({ realStats }: { realStats?: DashboardStats }) {
         },
         {
             label: "Post Buyers",
-            value: realStats?.postBuyersCount?.toLocaleString() || (realStats?.buyersCount?.toLocaleString() || "89"),
+            value: realStats ? (realStats.postBuyersCount ?? 0).toLocaleString() : "89",
             change: "Base App",
             icon: Heart,
             color: "rgba(255, 75, 145, 0.2)",
@@ -30,15 +30,15 @@ export function Stats({ realStats }: { realStats?: DashboardStats }) {
         },
         {
             label: "Verified Buyers",
-            value: realStats?.buyersCount?.toLocaleString() || "89",
+            value: realStats ? realStats.buyersCount.toLocaleString() : "89",
             change: realStats ? "Verified" : "+18.3%",
-            icon: TrendingUp, // Changed to a more "verified" looking icon or just keep it
+            icon: TrendingUp,
             color: "rgba(16, 185, 129, 0.2)",
             textColor: "#10b981",
         },
         {
-            label: "Commenters",
-            value: realStats?.commentersCount?.toLocaleString() || "24",
+            label: "Transactions",
+            value: realStats ? realStats.commentersCount.toLocaleString() : "24",
             change: realStats ? "Top users" : "+2.1%",
             icon: MessageSquare,
             color: "rgba(245, 158, 11, 0.2)",

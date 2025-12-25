@@ -6,7 +6,7 @@ import { Address, Name, Identity, Avatar } from "@coinbase/onchainkit/identity";
 import { Stats } from "../components/Stats";
 import { FollowerList } from "../components/FollowerList";
 import { BuyerSection } from "../components/BuyerSection";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface DashboardData {
   stats?: {
@@ -20,6 +20,7 @@ interface DashboardData {
   followers?: any[];
   buyers?: any[];
   postBuyers?: any[];
+  error?: string;
   /* eslint-enable @typescript-eslint/no-explicit-any */
 }
 
@@ -27,23 +28,33 @@ export default function Home() {
   const { address, isConnected } = useAccount();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (isConnected && address) {
       fetchDashboardData(address);
+    } else {
+      setDashboardData(null);
+      setErrorMsg(null);
     }
   }, [isConnected, address]);
 
   const fetchDashboardData = async (userAddress: string) => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       const res = await fetch(`/api/dashboard?address=${userAddress}`);
       const data = await res.json();
+
       if (data && !data.error) {
         setDashboardData(data as DashboardData);
+      } else if (data && data.error) {
+        setErrorMsg(data.error);
+        // We don't null out dashboardData here so placeholders might still show
       }
     } catch (err) {
       console.error("Error loading dashboard:", err);
+      setErrorMsg("Failed to connect to activity feed");
     } finally {
       setLoading(false);
     }
@@ -57,7 +68,7 @@ export default function Home() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h1>UpYou Dashboard</h1>
+            <h1 className="gradient-text">UpYou Dashboard</h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Social Insights • Trade • Talk</p>
           </motion.div>
         </div>
@@ -79,6 +90,24 @@ export default function Home() {
           </Wallet>
         </div>
       </header>
+
+      <AnimatePresence>
+        {errorMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="glass-card"
+            style={{ marginBottom: '1.5rem', borderLeft: '4px solid #ef4444', padding: '1rem' }}
+          >
+            <p style={{ color: '#ef4444', fontSize: '0.875rem', fontWeight: '500' }}>
+              {errorMsg === "Farcaster user not found for this address"
+                ? "Note: Farcaster profile not linked. Showing onchain activity only."
+                : errorMsg}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading && (
         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--accent-blue)' }}>

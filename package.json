@@ -13,7 +13,6 @@
     "@coinbase/onchainkit": "latest",
     "@farcaster/miniapp-sdk": "^0.2.1",
     "@farcaster/miniapp-wagmi-connector": "^1.1.0",
-    "@neynar/nodejs-sdk": "^1.21.1",
     "@tanstack/react-query": "^5.81.5",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",

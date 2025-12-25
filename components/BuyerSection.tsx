@@ -51,23 +51,21 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
         isPostBuy: true
     })) : [];
 
-    const traditionalBuyers: PostBuyerItem[] = data && data.length > 0 ? data.map(b => {
+    const traditionalBuyers: PostBuyerItem[] = (data && data.length > 0) ? data.map(b => {
         const follower = b.followerAddress;
         const social = follower.socials?.[0];
-        const balance = follower.tokenBalances?.[0];
         const transfer = follower.tokenTransfers?.[0];
 
         return {
             address: follower.addresses?.[0] || "",
             fallbackName: social?.profileName || "Anonymous",
-            item: transfer ? `Bought ${transfer.token.symbol}` : (balance ? `${balance.token.name} Holder` : "Verified Onchain"),
-            price: transfer ? `${parseFloat(transfer.formattedAmount).toFixed(4)} ${transfer.token.symbol}` : (balance ? `${balance.amount} ${balance.token.symbol}` : "0 ETH"),
+            item: transfer ? `Bought ${transfer.token.symbol}` : "Verified Onchain",
+            price: transfer ? `${parseFloat(transfer.formattedAmount).toFixed(4)} ${transfer.token.symbol}` : "0 ETH",
             time: "Recent",
             isPostBuy: !!transfer
         };
     }) : [];
 
-    // Fallback if no real data at all
     const tradeDataRaw = [...postBuyers, ...traditionalBuyers];
     const tradeData = tradeDataRaw.length > 0 ? tradeDataRaw.slice(0, 10) : [
         {
