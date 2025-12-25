@@ -1,16 +1,72 @@
 import axios from "axios";
+import jwt from 'jsonwebtoken';
 
 const getCDPUrl = () => {
-    const apiKey = process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY;
-    if (!apiKey) {
-        console.warn("CDP API Key missing (NEXT_PUBLIC_ONCHAINKIT_API_KEY)");
-        return null;
-    }
-    return `https://api.developer.coinbase.com/rpc/v1/base/${apiKey}`;
+    // If we have a JWT setup, use the base RPC URL, but the auth header will handle access.
+    // Standard RPC URL for Base:
+    return `https://api.developer.coinbase.com/rpc/v1/base`;
 };
 
+// Generate JWT for CDP API
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function generateCDPToken(method: string, path: string): string | null {
+    const keyName = process.env.CDP_API_KEY_NAME;
+    const privateKey = process.env.CDP_API_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+    if (!keyName || !privateKey) {
+        // Fallback to standard API Key if CDP Key Name/Private Key are not set
+        return null;
+    }
+
+    const requestMethod = "POST"; // RPC uses POST
+    const url = "api.developer.coinbase.com/rpc/v1/base"; // No scheme in URI claim usually, but let's follow standard practices or just the host+path
+
+    // According to docs, uri claim should be: "POST api.developer.coinbase.com/rpc/v1/base"
+    const uri = `${requestMethod} ${url}`;
+
+    try {
+        const token = jwt.sign(
+            {
+                iss: "coinbase-cloud-api",
+                nbf: Math.floor(Date.now() / 1000),
+                exp: Math.floor(Date.now() / 1000) + 120, // 2 mins
+                sub: keyName,
+                uri,
+            },
+            privateKey,
+            {
+                algorithm: "ES256",
+                header: {
+                    kid: keyName,
+                    nonce: Math.floor(Math.random() * 1000000).toString(), // optional but good practice
+                },
+            }
+        );
+        return token;
+    } catch (e) {
+        console.error("Error generating CDP JWT:", e);
+        return null;
+    }
+}
+
 export async function getOnchainTransactions(address: string) {
-    const url = getCDPUrl();
+    let url = getCDPUrl();
+    const token = generateCDPToken("POST", "rpc/v1/base");
+
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+    };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    } else {
+        // Fallback to URL key if no JWT
+        const apiKey = process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY;
+        if (apiKey) {
+            url = `${url}/${apiKey}`;
+        }
+    }
+
     if (!url) return [];
 
     try {
@@ -24,9 +80,7 @@ export async function getOnchainTransactions(address: string) {
                 page_size: 5
             }]
         }, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers,
             timeout: 5000 // 5 second timeout
         });
 
@@ -78,7 +132,7 @@ export async function getTransactionCount(address: string) {
             method: "eth_getTransactionCount",
             params: [address, "latest"]
         });
-        
+
         if (response.data.result) {
             return parseInt(response.data.result, 16);
         }
