@@ -3,31 +3,46 @@ import { Avatar, Name, Identity } from "@coinbase/onchainkit/identity";
 import { ShoppingBag, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 
-const buyers = [
-    {
-        address: "0xA0Cf798816D4D9b5700819B160e7E0a9F19bb32d",
-        fallbackName: "benny.eth",
-        item: "Base Pro Badge",
-        price: "0.05 ETH",
-        time: "5m ago",
-    },
-    {
-        address: "0x2C1A5ED15462D24F333E6E8b2CE0f97092c73010",
-        fallbackName: "alpha.base.eth",
-        item: "Genesis NFT #442",
-        price: "0.12 ETH",
-        time: "12m ago",
-    },
-    {
-        address: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-        fallbackName: "uniswapv2.eth",
-        item: "Community Token",
-        price: "10,000 $UP",
-        time: "24m ago",
-    },
-];
+interface BuyerData {
+    followerAddress: {
+        addresses: string[];
+        socials?: Array<{ profileName: string; userId: string }>;
+        tokenBalances?: Array<{
+            token: { name: string; symbol: string };
+            amount: string;
+        }>;
+    };
+}
 
-export function BuyerSection() {
+export function BuyerSection({ data }: { data?: BuyerData[] }) {
+    const displayData = data && data.length > 0 ? data.map(b => {
+        const follower = b.followerAddress;
+        const social = follower.socials?.[0];
+        const balance = follower.tokenBalances?.[0];
+        return {
+            address: follower.addresses?.[0] || "",
+            fallbackName: social?.profileName || "Anonymous",
+            item: balance ? `${balance.token.name} Holder` : "Verified Onchain",
+            price: balance ? `${balance.amount} ${balance.token.symbol}` : "0 ETH",
+            time: "Recent"
+        };
+    }) : [
+        {
+            address: "0xA0Cf798816D4D9b5700819B160e7E0a9F19bb32d",
+            fallbackName: "benny.eth",
+            item: "Base Pro Badge",
+            price: "0.05 ETH",
+            time: "5m ago",
+        },
+        {
+            address: "0x2C1A5ED15462D24F333E6E8b2CE0f97092c73010",
+            fallbackName: "alpha.base.eth",
+            item: "Genesis NFT #442",
+            price: "0.12 ETH",
+            time: "12m ago",
+        }
+    ];
+
     return (
         <div className="glass-card" style={{ height: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
@@ -37,9 +52,9 @@ export function BuyerSection() {
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Verified Buyers</h2>
             </div>
             <div className="buyers-list">
-                {buyers.map((buyer, index) => (
+                {displayData.map((buyer, index) => (
                     <motion.div
-                        key={buyer.address}
+                        key={buyer.address + index}
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.1 }}
@@ -52,13 +67,15 @@ export function BuyerSection() {
                                 </Identity>
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
-                                            <Name style={{ fontSize: '0.875rem', fontWeight: '600' }} />
-                                        </Identity>
+                                        {buyer.address && (
+                                            <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
+                                                <Name style={{ fontSize: '0.875rem', fontWeight: '600' }} />
+                                            </Identity>
+                                        )}
                                         <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#fff' }}>{buyer.fallbackName}</span>
                                     </div>
                                     <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace', marginTop: '2px' }}>
-                                        {buyer.address.slice(0, 6)}...{buyer.address.slice(-4)}
+                                        {buyer.address?.slice(0, 6)}...{buyer.address?.slice(-4)}
                                     </p>
                                 </div>
                             </div>
@@ -66,7 +83,7 @@ export function BuyerSection() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                             <div>
-                                <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Item</p>
+                                <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Status</p>
                                 <p style={{ fontSize: '0.875rem', fontWeight: '600' }}>{buyer.item}</p>
                             </div>
                             <div style={{ textAlign: 'right' }}>

@@ -2,42 +2,49 @@
 import { Users, MessageSquare, ShoppingCart, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
-const stats = [
-    {
-        label: "Active Followers",
-        value: "1,284",
-        change: "+12.5%",
-        icon: Users,
-        color: "rgba(59, 130, 246, 0.2)",
-        textColor: "#3b82f6",
-    },
-    {
-        label: "Recent Activity",
-        value: "452",
-        change: "+5.2%",
-        icon: MessageSquare,
-        color: "rgba(139, 92, 246, 0.2)",
-        textColor: "#8b5cf6",
-    },
-    {
-        label: "Bought Users",
-        value: "89",
-        change: "+18.3%",
-        icon: ShoppingCart,
-        color: "rgba(16, 185, 129, 0.2)",
-        textColor: "#10b981",
-    },
-    {
-        label: "Growth Rate",
-        value: "24%",
-        change: "+2.1%",
-        icon: TrendingUp,
-        color: "rgba(245, 158, 11, 0.2)",
-        textColor: "#f59e0b",
-    },
-];
+interface DashboardStats {
+    followersCount: number;
+    activityCount: number;
+    commentersCount: number;
+    buyersCount: number;
+}
 
-export function Stats() {
+export function Stats({ realStats }: { realStats?: DashboardStats }) {
+    const stats = [
+        {
+            label: "Active Followers",
+            value: realStats?.followersCount?.toLocaleString() || "1,284",
+            change: realStats ? "Live" : "+12.5%",
+            icon: Users,
+            color: "rgba(59, 130, 246, 0.2)",
+            textColor: "#3b82f6",
+        },
+        {
+            label: "Recent Activity",
+            value: realStats?.activityCount?.toLocaleString() || "452",
+            change: realStats ? "Syncing..." : "+5.2%",
+            icon: MessageSquare,
+            color: "rgba(139, 92, 246, 0.2)",
+            textColor: "#8b5cf6",
+        },
+        {
+            label: "Verified Buyers",
+            value: realStats?.buyersCount?.toLocaleString() || "89",
+            change: realStats ? "Verified" : "+18.3%",
+            icon: ShoppingCart,
+            color: "rgba(16, 185, 129, 0.2)",
+            textColor: "#10b981",
+        },
+        {
+            label: "Commenters",
+            value: realStats?.commentersCount?.toLocaleString() || "24",
+            change: realStats ? "Top users" : "+2.1%",
+            icon: TrendingUp,
+            color: "rgba(245, 158, 11, 0.2)",
+            textColor: "#f59e0b",
+        },
+    ];
+
     return (
         <div className="stats-grid">
             {stats.map((stat, index) => (
