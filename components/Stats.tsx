@@ -12,7 +12,6 @@ interface DashboardStats {
 
 export function Stats({ realStats }: { realStats?: DashboardStats }) {
     const stats = [
-    const stats = [
         {
             label: "Followers",
             value: realStats ? realStats.followersCount.toLocaleString() : "0",
