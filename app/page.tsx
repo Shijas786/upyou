@@ -4,6 +4,7 @@ import { useAccount } from "wagmi";
 import { Wallet, ConnectWallet, WalletDropdown, WalletDropdownDisconnect } from "@coinbase/onchainkit/wallet";
 import { Address, Name, Identity, Avatar } from "@coinbase/onchainkit/identity";
 import { Stats } from "../components/Stats";
+import { ProfileHeader } from "../components/ProfileHeader";
 import { FollowerList } from "../components/FollowerList";
 import { BuyerSection } from "../components/BuyerSection";
 import { motion, AnimatePresence } from "framer-motion";
@@ -91,6 +92,13 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Profile Header (Replaces simple stats if needed, or enhances it) */}
+      <AnimatePresence>
+        {isConnected && address && (
+          <ProfileHeader address={address} stats={dashboardData?.stats} />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {errorMsg && (
           <motion.div
@@ -111,7 +119,7 @@ export default function Home() {
 
       {loading && (
         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--accent-blue)' }}>
-          <p className="animate-pulse">Tracking Base App Double-Tap Interactions...</p>
+          <p className="animate-pulse">Loading Onchain Profile Data...</p>
         </div>
       )}
 
