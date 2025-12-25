@@ -1,5 +1,5 @@
 "use client";
-import { Users, MessageSquare, ShoppingCart, TrendingUp } from "lucide-react";
+import { Users, MessageSquare, Heart, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface DashboardStats {
@@ -7,6 +7,7 @@ interface DashboardStats {
     activityCount: number;
     commentersCount: number;
     buyersCount: number;
+    postBuyersCount?: number;
 }
 
 export function Stats({ realStats }: { realStats?: DashboardStats }) {
@@ -20,18 +21,18 @@ export function Stats({ realStats }: { realStats?: DashboardStats }) {
             textColor: "#3b82f6",
         },
         {
-            label: "Recent Activity",
-            value: realStats?.activityCount?.toLocaleString() || "452",
-            change: realStats ? "Syncing..." : "+5.2%",
-            icon: MessageSquare,
-            color: "rgba(139, 92, 246, 0.2)",
-            textColor: "#8b5cf6",
+            label: "Post Buyers",
+            value: realStats?.postBuyersCount?.toLocaleString() || (realStats?.buyersCount?.toLocaleString() || "89"),
+            change: "Base App",
+            icon: Heart,
+            color: "rgba(255, 75, 145, 0.2)",
+            textColor: "#ff4b91",
         },
         {
             label: "Verified Buyers",
             value: realStats?.buyersCount?.toLocaleString() || "89",
             change: realStats ? "Verified" : "+18.3%",
-            icon: ShoppingCart,
+            icon: TrendingUp, // Changed to a more "verified" looking icon or just keep it
             color: "rgba(16, 185, 129, 0.2)",
             textColor: "#10b981",
         },
@@ -39,7 +40,7 @@ export function Stats({ realStats }: { realStats?: DashboardStats }) {
             label: "Commenters",
             value: realStats?.commentersCount?.toLocaleString() || "24",
             change: realStats ? "Top users" : "+2.1%",
-            icon: TrendingUp,
+            icon: MessageSquare,
             color: "rgba(245, 158, 11, 0.2)",
             textColor: "#f59e0b",
         },
@@ -59,7 +60,7 @@ export function Stats({ realStats }: { realStats?: DashboardStats }) {
                         <div className="icon-wrapper" style={{ backgroundColor: stat.color, color: stat.textColor }}>
                             <stat.icon size={24} />
                         </div>
-                        <span className="change-badge">
+                        <span className="change-badge" style={{ color: stat.textColor }}>
                             {stat.change}
                         </span>
                     </div>

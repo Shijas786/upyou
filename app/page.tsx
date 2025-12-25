@@ -8,14 +8,24 @@ import { FollowerList } from "../components/FollowerList";
 import { BuyerSection } from "../components/BuyerSection";
 import { motion } from "framer-motion";
 
+interface DashboardData {
+  stats?: {
+    followersCount: number;
+    activityCount: number;
+    commentersCount: number;
+    buyersCount: number;
+    postBuyersCount: number;
+  };
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  followers?: any[];
+  buyers?: any[];
+  postBuyers?: any[];
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+}
+
 export default function Home() {
   const { address, isConnected } = useAccount();
-  const [dashboardData, setDashboardData] = useState<{
-    stats?: any;
-    followers?: any[];
-    buyers?: any[];
-    postBuyers?: any[];
-  } | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -29,8 +39,8 @@ export default function Home() {
     try {
       const res = await fetch(`/api/dashboard?address=${userAddress}`);
       const data = await res.json();
-      if (!data.error) {
-        setDashboardData(data);
+      if (data && !data.error) {
+        setDashboardData(data as DashboardData);
       }
     } catch (err) {
       console.error("Error loading dashboard:", err);
@@ -82,7 +92,8 @@ export default function Home() {
 
       <section className="section-grid" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem' }}>
         <div className="main-content">
-          <FollowerList data={dashboardData?.followers} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <FollowerList data={dashboardData?.followers as any[]} />
         </div>
         <aside className="sidebar">
           <BuyerSection data={dashboardData?.buyers} postBuyersData={dashboardData?.postBuyers} />

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Avatar, Name, Identity } from "@coinbase/onchainkit/identity";
-import { ShoppingBag, ArrowUpRight, Heart, MessageCircle } from "lucide-react";
+import { ArrowUpRight, Heart, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface BuyerData {
@@ -20,22 +20,38 @@ interface BuyerData {
     };
 }
 
-export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], postBuyersData?: any[] }) {
+interface PostBuyerItem {
+    address: string;
+    fallbackName: string;
+    item: string;
+    price: string;
+    time: string;
+    isPostBuy: boolean;
+}
+
+interface PostBuyerData {
+    creatorName: string;
+    buyerAddress: string;
+    buyerName: string;
+    token: string;
+    amount: string;
+    time: string | number | Date;
+}
+
+export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], postBuyersData?: PostBuyerData[] }) {
     const [activeTab, setActiveTab] = useState<'trade' | 'talk'>('trade');
 
     // --- TRADE LOGIC (Double Tap / Buy) ---
-    const postBuyers = postBuyersData ? postBuyersData.flatMap(w =>
-        w.buys?.map((b: any) => ({
-            address: "",
-            fallbackName: `Buyer of ${w.name}'s Post`,
-            item: `Bought ${b.token}`,
-            price: `${parseFloat(b.amount).toFixed(4)} ${b.token}`,
-            time: new Date(b.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isPostBuy: true
-        })) || []
-    ) : [];
+    const postBuyers: PostBuyerItem[] = postBuyersData ? postBuyersData.map((pb) => ({
+        address: pb.buyerAddress,
+        fallbackName: pb.buyerName || `Buyer of ${pb.creatorName}'s Post`,
+        item: `Bought ${pb.token} (Post @${pb.creatorName})`,
+        price: `${parseFloat(pb.amount).toFixed(4)} ${pb.token}`,
+        time: new Date(pb.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isPostBuy: true
+    })) : [];
 
-    const traditionalBuyers = data && data.length > 0 ? data.map(b => {
+    const traditionalBuyers: PostBuyerItem[] = data && data.length > 0 ? data.map(b => {
         const follower = b.followerAddress;
         const social = follower.socials?.[0];
         const balance = follower.tokenBalances?.[0];
@@ -49,7 +65,11 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
             time: "Recent",
             isPostBuy: !!transfer
         };
-    }) : [
+    }) : [];
+
+    // Fallback if no real data at all
+    const tradeDataRaw = [...postBuyers, ...traditionalBuyers];
+    const tradeData = tradeDataRaw.length > 0 ? tradeDataRaw.slice(0, 10) : [
         {
             address: "0xA0Cf798816D4D9b5700819B160e7E0a9F19bb32d",
             fallbackName: "benny.eth",
@@ -68,10 +88,7 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
         }
     ];
 
-    const tradeData = [...postBuyers, ...traditionalBuyers].slice(0, 8);
-
     // --- TALK LOGIC (Mentions / Comments) ---
-    // For now using mock talk data, but structure it for real integration later
     const talkData = [
         {
             fallbackName: "jesse.base.eth",
@@ -89,7 +106,6 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
 
     return (
         <div className="glass-card" style={{ height: '100%', padding: '0' }}>
-            {/* Tab Header - Matching the screenshot style */}
             <div style={{ display: 'flex', borderBottom: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.02)' }}>
                 <button
                     onClick={() => setActiveTab('trade')}
@@ -137,7 +153,7 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
                             exit={{ opacity: 0, x: 10 }}
                             className="buyers-list"
                         >
-                            {tradeData.map((buyer: any, index: number) => (
+                            {tradeData.map((buyer, index) => (
                                 <div
                                     key={(buyer.address || buyer.fallbackName) + index}
                                     className="buyer-card"
@@ -145,26 +161,26 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            {buyer.address ? (
+                                            {buyer.address && buyer.address !== "" ? (
                                                 <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
                                                     <Avatar style={{ width: '40px', height: '40px', borderRadius: '10px' }} />
                                                 </Identity>
                                             ) : (
-                                                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255, 75, 145, 0.2)', display: 'flex', alignItems: 'center', justifyCenter: 'center' }}>
+                                                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255, 75, 145, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                     <Heart size={20} style={{ color: '#ff4b91', margin: 'auto' }} />
                                                 </div>
                                             )}
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    {buyer.address && (
+                                                    {buyer.address && buyer.address !== "" && (
                                                         <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
                                                             <Name style={{ fontSize: '0.875rem', fontWeight: '600' }} />
                                                         </Identity>
                                                     )}
-                                                    <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#fff' }}>{buyer.fallbackName}</span>
+                                                    {(!buyer.address || buyer.address === "") && <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#fff' }}>{buyer.fallbackName}</span>}
                                                 </div>
                                                 <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace', marginTop: '2px' }}>
-                                                    {buyer.address ? `${buyer.address?.slice(0, 6)}...${buyer.address?.slice(-4)}` : 'Onchain Interaction'}
+                                                    {buyer.address && buyer.address !== "" ? `${buyer.address.slice(0, 6)}...${buyer.address.slice(-4)}` : 'Onchain Interaction'}
                                                 </p>
                                             </div>
                                         </div>
@@ -223,7 +239,6 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
     );
 }
 
-// Internal helper for TrendingUp since it's used in the Talk section
 function TrendingUp({ size }: { size: number }) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
