@@ -67,24 +67,7 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
     }) : [];
 
     const tradeDataRaw = [...postBuyers, ...traditionalBuyers];
-    const tradeData = tradeDataRaw.length > 0 ? tradeDataRaw.slice(0, 10) : [
-        {
-            address: "0xA0Cf798816D4D9b5700819B160e7E0a9F19bb32d",
-            fallbackName: "benny.eth",
-            item: "Double Tapped Post",
-            price: "0.05 ETH",
-            time: "5m ago",
-            isPostBuy: true
-        },
-        {
-            address: "0x2C1A5ED15462D24F333E6E8b2CE0f97092c73010",
-            fallbackName: "alpha.base.eth",
-            item: "Bought Post",
-            price: "0.12 ETH",
-            time: "12m ago",
-            isPostBuy: true
-        }
-    ];
+    const tradeData = tradeDataRaw; // No fallback
 
     // --- TALK LOGIC (Mentions / Comments) ---
     const talkData = [
@@ -151,58 +134,64 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
                             exit={{ opacity: 0, x: 10 }}
                             className="buyers-list"
                         >
-                            {tradeData.map((buyer, index) => (
-                                <div
-                                    key={(buyer.address || buyer.fallbackName) + index}
-                                    className="buyer-card"
-                                    style={{ borderLeft: buyer.isPostBuy ? '3px solid #ff4b91' : 'none' }}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            {buyer.address && buyer.address !== "" ? (
-                                                <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
-                                                    <Avatar style={{ width: '40px', height: '40px', borderRadius: '10px' }} />
-                                                </Identity>
-                                            ) : (
-                                                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255, 75, 145, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Heart size={20} style={{ color: '#ff4b91', margin: 'auto' }} />
+                            {tradeData.length > 0 ? (
+                                tradeData.map((buyer, index) => (
+                                    <div
+                                        key={(buyer.address || buyer.fallbackName) + index}
+                                        className="buyer-card"
+                                        style={{ borderLeft: buyer.isPostBuy ? '3px solid #ff4b91' : 'none' }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                {buyer.address && buyer.address !== "" ? (
+                                                    <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
+                                                        <Avatar style={{ width: '40px', height: '40px', borderRadius: '10px' }} />
+                                                    </Identity>
+                                                ) : (
+                                                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255, 75, 145, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <Heart size={20} style={{ color: '#ff4b91', margin: 'auto' }} />
+                                                    </div>
+                                                )}
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        {buyer.address && buyer.address !== "" && (
+                                                            <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
+                                                                <Name style={{ fontSize: '0.875rem', fontWeight: '600' }} />
+                                                            </Identity>
+                                                        )}
+                                                        {(!buyer.address || buyer.address === "") && <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#fff' }}>{buyer.fallbackName}</span>}
+                                                    </div>
+                                                    <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace', marginTop: '2px' }}>
+                                                        {buyer.address && buyer.address !== "" ? `${buyer.address.slice(0, 6)}...${buyer.address.slice(-4)}` : 'Onchain Interaction'}
+                                                    </p>
                                                 </div>
-                                            )}
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    {buyer.address && buyer.address !== "" && (
-                                                        <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
-                                                            <Name style={{ fontSize: '0.875rem', fontWeight: '600' }} />
-                                                        </Identity>
-                                                    )}
-                                                    {(!buyer.address || buyer.address === "") && <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#fff' }}>{buyer.fallbackName}</span>}
-                                                </div>
-                                                <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace', marginTop: '2px' }}>
-                                                    {buyer.address && buyer.address !== "" ? `${buyer.address.slice(0, 6)}...${buyer.address.slice(-4)}` : 'Onchain Interaction'}
+                                            </div>
+                                            <span style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)' }}>{buyer.time}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                            <div>
+                                                <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+                                                    {buyer.isPostBuy ? 'Action' : 'Status'}
                                                 </p>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <p style={{ fontSize: '0.875rem', fontWeight: '600' }}>{buyer.item}</p>
+                                                    {buyer.isPostBuy && <Heart size={12} style={{ color: '#ff4b91' }} fill="#ff4b91" />}
+                                                </div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <p className="price-tag" style={{ color: buyer.isPostBuy ? '#ff4b91' : 'var(--accent-green)' }}>{buyer.price}</p>
+                                                <button style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '0.625rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}>
+                                                    TX <ArrowUpRight size={10} />
+                                                </button>
                                             </div>
                                         </div>
-                                        <span style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)' }}>{buyer.time}</span>
                                     </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                                        <div>
-                                            <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                                                {buyer.isPostBuy ? 'Action' : 'Status'}
-                                            </p>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <p style={{ fontSize: '0.875rem', fontWeight: '600' }}>{buyer.item}</p>
-                                                {buyer.isPostBuy && <Heart size={12} style={{ color: '#ff4b91' }} fill="#ff4b91" />}
-                                            </div>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <p className="price-tag" style={{ color: buyer.isPostBuy ? '#ff4b91' : 'var(--accent-green)' }}>{buyer.price}</p>
-                                            <button style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '0.625rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}>
-                                                TX <ArrowUpRight size={10} />
-                                            </button>
-                                        </div>
-                                    </div>
+                                ))
+                            ) : (
+                                <div style={{ padding: '2rem', textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
+                                    No transaction activity yet.
                                 </div>
-                            ))}
+                            )}
                         </motion.div>
                     ) : (
                         <motion.div
