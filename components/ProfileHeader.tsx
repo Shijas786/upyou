@@ -1,4 +1,5 @@
 import { Avatar, Name, Identity, Address } from "@coinbase/onchainkit/identity";
+import { base } from "wagmi/chains";
 import { useAccount } from "wagmi";
 import { BadgeCheck, Globe, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -48,22 +49,30 @@ export function ProfileHeader({ address, stats }: ProfileHeaderProps) {
 
             {/* Avatar & Identity */}
             <div style={{ position: 'relative', zIndex: 1, marginBottom: '1.5rem' }}>
-                <Identity address={address as `0x${string}`} className="profile-identity-large">
+                <Identity
+                    address={address as `0x${string}`}
+                    chain={base}
+                    className="profile-identity-large"
+                >
                     <div style={{
                         padding: '4px',
                         background: 'linear-gradient(135deg, #3b82f6 0%, #ff4b91 100%)',
                         borderRadius: '50%',
                         cursor: 'pointer'
                     }} onClick={openBasenames}>
-                        <Avatar style={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid #000' }} />
+                        <Avatar chain={base} style={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid #000' }} />
                     </div>
                 </Identity>
             </div>
 
             <div style={{ textAlign: 'center', zIndex: 1, marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <Identity address={address as `0x${string}`} className="profile-identity-name">
-                        <Name style={{ fontSize: '2rem', fontWeight: '800', background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }} />
+                    <Identity
+                        address={address as `0x${string}`}
+                        chain={base}
+                        className="profile-identity-name"
+                    >
+                        <Name chain={base} style={{ fontSize: '2rem', fontWeight: '800', background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }} />
                     </Identity>
                     <BadgeCheck size={24} style={{ color: '#3b82f6' }} fill="rgba(59, 130, 246, 0.2)" />
                 </div>
