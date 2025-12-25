@@ -17,6 +17,12 @@ interface DashboardData {
     buyersCount: number;
     postBuyersCount: number;
   };
+  profile?: {
+    username?: string;
+    displayName?: string;
+    bio?: string;
+    pfpUrl?: string;
+  };
   /* eslint-disable @typescript-eslint/no-explicit-any */
   followers?: any[];
   buyers?: any[];
@@ -95,7 +101,11 @@ export default function Home() {
       {/* Profile Header (Replaces simple stats if needed, or enhances it) */}
       <AnimatePresence>
         {isConnected && address && (
-          <ProfileHeader address={address} stats={dashboardData?.stats} />
+          <ProfileHeader
+            address={address}
+            stats={dashboardData?.stats}
+            profile={dashboardData?.profile}
+          />
         )}
       </AnimatePresence>
 

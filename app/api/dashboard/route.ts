@@ -19,6 +19,36 @@ export async function GET(req: NextRequest) {
             getOnchainTokenBalances(address)
         ]);
 
+        // --- FETCH FARCASTER PROFILE (Via generic Neynar or public API) ---
+        let farcasterProfile = null;
+        try {
+            // Using a generic public call or relying on client-side OnchainKit is safer for non-authed, 
+            // but if we have a key (env) we use it. fallback to empty.
+            const neynarKey = process.env.NEYNAR_API_KEY || "NEYNAR_API_DOCS"; // Fallback to free tier doc key for testing
+            const fetch = (await import("node-fetch")).default; // Dynamic import for fetch if needed or just use built-in in Next 15+
+
+            const neynarRes = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`, {
+                headers: { 'accept': 'application/json', 'api_key': neynarKey }
+            });
+
+            if (neynarRes.ok) {
+                const neynarData = await neynarRes.json();
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const user = (neynarData as any)[address.toLowerCase()]?.[0];
+                if (user) {
+                    farcasterProfile = {
+                        username: user.username,
+                        displayName: user.display_name,
+                        bio: user.profile?.bio?.text,
+                        pfpUrl: user.pfp_url,
+                        fid: user.fid
+                    };
+                }
+            }
+        } catch (e) {
+            console.log("Farcaster fetch failed (non-critical):", e);
+        }
+
         // --- PROCESS DATA for Dashboard ---
 
         // 1. Identify "Followers" (Unique Counterparties)
@@ -105,10 +135,11 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             // Minimal mocked user object to satisfy frontend types if needed, or null
             user: {
-                username: "Onchain User",
+                username: farcasterProfile?.username || "Onchain User",
                 follower_count: uniqueCounterparties.size,
-                display_name: address.slice(0, 6) + "..." + address.slice(-4)
+                display_name: farcasterProfile?.displayName || (address.slice(0, 6) + "..." + address.slice(-4))
             },
+            profile: farcasterProfile, // Pass full profile object
             stats: {
                 followersCount: uniqueCounterparties.size,
                 activityCount: Math.max(transactions.length, txCount), // Use real onchain nonce if list is short/empty

@@ -4,16 +4,23 @@ import { useAccount } from "wagmi";
 import { BadgeCheck, Globe, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface ProfileHeaderProps {
     address: string;
     stats?: {
         followersCount: number;
         activityCount: number;
-        commentersCount: number; // Used as Token Holdings count
+        commentersCount: number;
+    };
+    profile?: {
+        username?: string;
+        displayName?: string;
+        bio?: string;
+        pfpUrl?: string;
     };
 }
 
-export function ProfileHeader({ address, stats }: ProfileHeaderProps) {
+export function ProfileHeader({ address, stats, profile }: ProfileHeaderProps) {
     const { chain } = useAccount();
 
     const openBasenames = () => {
@@ -72,10 +79,25 @@ export function ProfileHeader({ address, stats }: ProfileHeaderProps) {
                         chain={base}
                         className="profile-identity-name"
                     >
-                        <Name address={address as `0x${string}`} chain={base} style={{ fontSize: '2rem', fontWeight: '800', background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }} />
+                        {/* Prefer Farcaster/Base context name if available, else fallback to Basename */}
+                        {profile?.displayName ? (
+                            <span style={{ fontSize: '2rem', fontWeight: '800', color: '#fff' }}>{profile.displayName}</span>
+                        ) : (
+                            <Name address={address as `0x${string}`} chain={base} style={{ fontSize: '2rem', fontWeight: '800', background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }} />
+                        )}
                     </Identity>
                     <BadgeCheck size={24} style={{ color: '#3b82f6' }} fill="rgba(59, 130, 246, 0.2)" />
                 </div>
+
+                {profile?.username && (
+                    <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: '-8px', marginBottom: '8px', fontSize: '1rem' }}>@{profile.username}</p>
+                )}
+
+                {profile?.bio && (
+                    <p style={{ color: 'rgba(255,255,255,0.8)', maxWidth: '400px', margin: '0 auto 12px auto', fontSize: '0.9rem', lineHeight: '1.4' }}>
+                        {profile.bio}
+                    </p>
+                )}
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                     <Address className="profile-address" />
