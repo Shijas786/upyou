@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFollowers, getRecentActivity, getActiveCommenters } from "@/lib/neynar";
-import { getVerifiedBuyers } from "@/lib/airstack";
+import { getVerifiedBuyers, getPostActivity } from "@/lib/airstack";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 
 const neynar = new NeynarAPIClient(process.env.NEYNAR_API_KEY || "");
@@ -32,6 +32,21 @@ export async function GET(req: NextRequest) {
             getVerifiedBuyers(fid)
         ]);
 
+        // 3. Fetch detailed post buying activity for top followers
+        const topFids = followers.slice(0, 5).map((f: any) => parseInt(f.fid));
+        const postActivity = await getPostActivity(topFids);
+
+        // Filter "Post Buyers" specifically from token transfers
+        const wowBuyers = postActivity?.Socials?.Social?.map((s: any) => ({
+            fid: s.userId,
+            name: s.profileName,
+            buys: s.tokenTransfers?.map((t: any) => ({
+                token: t.token.symbol,
+                amount: t.formattedAmount,
+                time: t.blockTimestamp
+            }))
+        })) || [];
+
         return NextResponse.json({
             fid,
             user,
@@ -40,11 +55,13 @@ export async function GET(req: NextRequest) {
                 activityCount: activity.length,
                 commentersCount: commenters.length,
                 buyersCount: buyers?.length || 0,
+                wowBuyersCount: wowBuyers.length,
             },
-            followers: followers.slice(0, 5), // Limit for preview
+            followers: followers.slice(0, 5),
             activity: activity.slice(0, 5),
             commenters: commenters.slice(0, 5),
-            buyers: buyers?.slice(0, 5) || []
+            buyers: buyers?.slice(0, 5) || [],
+            wowBuyers // New "Post Buyers" logic data
         });
 
     } catch (error) {
