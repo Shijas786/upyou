@@ -1,7 +1,8 @@
 "use client";
+import { useState } from "react";
 import { Avatar, Name, Identity } from "@coinbase/onchainkit/identity";
-import { ShoppingBag, ArrowUpRight, Heart } from "lucide-react";
-import { motion } from "framer-motion";
+import { ShoppingBag, ArrowUpRight, Heart, MessageCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface BuyerData {
     followerAddress: {
@@ -20,10 +21,12 @@ interface BuyerData {
 }
 
 export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], postBuyersData?: any[] }) {
-    // Combine traditional holders with new "Post Buyers" (Base App double-tap logic)
+    const [activeTab, setActiveTab] = useState<'trade' | 'talk'>('trade');
+
+    // --- TRADE LOGIC (Double Tap / Buy) ---
     const postBuyers = postBuyersData ? postBuyersData.flatMap(w =>
         w.buys?.map((b: any) => ({
-            address: "", // We might not have the buyer's address directly here but we have the context
+            address: "",
             fallbackName: `Buyer of ${w.name}'s Post`,
             item: `Bought ${b.token}`,
             price: `${parseFloat(b.amount).toFixed(4)} ${b.token}`,
@@ -65,73 +68,164 @@ export function BuyerSection({ data, postBuyersData }: { data?: BuyerData[], pos
         }
     ];
 
-    const displayData = [...postBuyers, ...traditionalBuyers].slice(0, 8);
+    const tradeData = [...postBuyers, ...traditionalBuyers].slice(0, 8);
+
+    // --- TALK LOGIC (Mentions / Comments) ---
+    // For now using mock talk data, but structure it for real integration later
+    const talkData = [
+        {
+            fallbackName: "jesse.base.eth",
+            message: "This post is ungovernable! 🦝",
+            time: "2m ago",
+            isHighValue: true
+        },
+        {
+            fallbackName: "basefan.eth",
+            message: "L2 summer is here",
+            time: "15m ago",
+            isHighValue: false
+        }
+    ];
 
     return (
-        <div className="glass-card" style={{ height: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-                <div className="icon-wrapper" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-green)', padding: '0.5rem' }}>
-                    <ShoppingBag size={20} />
-                </div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Post Buyers</h2>
+        <div className="glass-card" style={{ height: '100%', padding: '0' }}>
+            {/* Tab Header - Matching the screenshot style */}
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.02)' }}>
+                <button
+                    onClick={() => setActiveTab('trade')}
+                    style={{
+                        flex: 1,
+                        padding: '1.25rem',
+                        background: 'none',
+                        border: 'none',
+                        color: activeTab === 'trade' ? '#fff' : 'rgba(255,255,255,0.4)',
+                        borderBottom: activeTab === 'trade' ? '2px solid #fff' : 'none',
+                        fontWeight: '600',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    Trade
+                </button>
+                <button
+                    onClick={() => setActiveTab('talk')}
+                    style={{
+                        flex: 1,
+                        padding: '1.25rem',
+                        background: 'none',
+                        border: 'none',
+                        color: activeTab === 'talk' ? '#fff' : 'rgba(255,255,255,0.4)',
+                        borderBottom: activeTab === 'talk' ? '2px solid #fff' : 'none',
+                        fontWeight: '600',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    Talk
+                </button>
             </div>
-            <div className="buyers-list">
-                {displayData.map((buyer: any, index: number) => (
-                    <motion.div
-                        key={(buyer.address || buyer.fallbackName) + index}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="buyer-card"
-                        style={{ borderLeft: buyer.isPostBuy ? '3px solid #ff4b91' : 'none' }}
-                    >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                {buyer.address ? (
-                                    <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
-                                        <Avatar style={{ width: '40px', height: '40px', borderRadius: '10px' }} />
-                                    </Identity>
-                                ) : (
-                                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255, 75, 145, 0.2)', display: 'flex', alignItems: 'center', justifyCenter: 'center' }}>
-                                        <Heart size={20} style={{ color: '#ff4b91', margin: 'auto' }} />
+
+            <div style={{ padding: '1.5rem' }}>
+                <AnimatePresence mode="wait">
+                    {activeTab === 'trade' ? (
+                        <motion.div
+                            key="trade-list"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            className="buyers-list"
+                        >
+                            {tradeData.map((buyer: any, index: number) => (
+                                <div
+                                    key={(buyer.address || buyer.fallbackName) + index}
+                                    className="buyer-card"
+                                    style={{ borderLeft: buyer.isPostBuy ? '3px solid #ff4b91' : 'none' }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            {buyer.address ? (
+                                                <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
+                                                    <Avatar style={{ width: '40px', height: '40px', borderRadius: '10px' }} />
+                                                </Identity>
+                                            ) : (
+                                                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255, 75, 145, 0.2)', display: 'flex', alignItems: 'center', justifyCenter: 'center' }}>
+                                                    <Heart size={20} style={{ color: '#ff4b91', margin: 'auto' }} />
+                                                </div>
+                                            )}
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    {buyer.address && (
+                                                        <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
+                                                            <Name style={{ fontSize: '0.875rem', fontWeight: '600' }} />
+                                                        </Identity>
+                                                    )}
+                                                    <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#fff' }}>{buyer.fallbackName}</span>
+                                                </div>
+                                                <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace', marginTop: '2px' }}>
+                                                    {buyer.address ? `${buyer.address?.slice(0, 6)}...${buyer.address?.slice(-4)}` : 'Onchain Interaction'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)' }}>{buyer.time}</span>
                                     </div>
-                                )}
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        {buyer.address && (
-                                            <Identity address={buyer.address as `0x${string}`} className="onchain-identity-mini">
-                                                <Name style={{ fontSize: '0.875rem', fontWeight: '600' }} />
-                                            </Identity>
-                                        )}
-                                        <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#fff' }}>{buyer.fallbackName}</span>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                        <div>
+                                            <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+                                                {buyer.isPostBuy ? 'Action' : 'Status'}
+                                            </p>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <p style={{ fontSize: '0.875rem', fontWeight: '600' }}>{buyer.item}</p>
+                                                {buyer.isPostBuy && <Heart size={12} style={{ color: '#ff4b91' }} fill="#ff4b91" />}
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <p className="price-tag" style={{ color: buyer.isPostBuy ? '#ff4b91' : 'var(--accent-green)' }}>{buyer.price}</p>
+                                            <button style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '0.625rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}>
+                                                TX <ArrowUpRight size={10} />
+                                            </button>
+                                        </div>
                                     </div>
-                                    <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace', marginTop: '2px' }}>
-                                        {buyer.address ? `${buyer.address?.slice(0, 6)}...${buyer.address?.slice(-4)}` : 'Onchain Interaction'}
-                                    </p>
                                 </div>
-                            </div>
-                            <span style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)' }}>{buyer.time}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                            <div>
-                                <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                                    {buyer.isPostBuy ? 'Action' : 'Status'}
-                                </p>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <p style={{ fontSize: '0.875rem', fontWeight: '600' }}>{buyer.item}</p>
-                                    {buyer.isPostBuy && <Heart size={12} style={{ color: '#ff4b91' }} fill="#ff4b91" />}
+                            ))}
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="talk-list"
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            className="talk-list"
+                        >
+                            {talkData.map((talk, index) => (
+                                <div key={index} className="buyer-card" style={{ marginBottom: '1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <MessageCircle size={16} style={{ color: '#3b82f6' }} />
+                                        </div>
+                                        <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>{talk.fallbackName}</span>
+                                        <span style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)', marginLeft: 'auto' }}>{talk.time}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', lineHeight: '1.4' }}>{talk.message}</p>
+                                    {talk.isHighValue && (
+                                        <div style={{ marginTop: '0.75rem', fontSize: '0.7rem', color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <TrendingUp size={12} /> High Engagement Comment
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <p className="price-tag" style={{ color: buyer.isPostBuy ? '#ff4b91' : 'var(--accent-green)' }}>{buyer.price}</p>
-                                <button style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '0.625rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}>
-                                    TX <ArrowUpRight size={10} />
-                                </button>
-                            </div>
-                        </div>
-                    </motion.div>
-                ))}
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
+    );
+}
+
+// Internal helper for TrendingUp since it's used in the Talk section
+function TrendingUp({ size }: { size: number }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
     );
 }
