@@ -54,13 +54,35 @@ export async function GET(req: NextRequest) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }).filter((t: any) => t.amount !== "0"); // Filter out empty transfers if any
 
-        // 2. Pivot "Post Buyers" (Use Transaction Data as proxy for "App Activity")
-        // In a real app, you might distinguish specific contract interactions here
+        // 2. Identify "Buy Post" Transactions (Interactions with Specific Contract)
+        // Contract: 0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789
+        // Method ID: 0x1fad948c
+        const BUY_POST_CONTRACT = "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789".toLowerCase();
+        const BUY_POST_METHOD = "0x1fad948c";
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const postBuyersData = onchainBuys.slice(0, 10).map((buy: any) => ({
+        const postBuyTransactions = (transactions || []).filter((tx: any) => {
+            const isToContract = (tx.to || "").toLowerCase() === BUY_POST_CONTRACT;
+            const hasMethodId = (tx.input || "").toLowerCase().startsWith(BUY_POST_METHOD);
+            // Also check 'data' field as some RPCs use that instead of 'input'
+            const hasDataMethodId = (tx.data || "").toLowerCase().startsWith(BUY_POST_METHOD);
+
+            return isToContract && (hasMethodId || hasDataMethodId);
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const postBuyersData = postBuyTransactions.length > 0 ? postBuyTransactions.map((tx: any) => ({
+            creatorName: "Base App Creator",
+            buyerAddress: tx.from || "",
+            buyerName: "", // OnchainKit handles this
+            token: "ETH", // Assuming ETH for now based on method analysis
+            amount: (parseInt(tx.value || "0") / 1e18).toFixed(4), // Convert Wei to ETH
+            time: tx.timestamp || new Date().toISOString()
+        })) : onchainBuys.slice(0, 10).map((buy: any) => ({
+            // Fallback to generic buys if no specific "Buy Post" tx found (to keep UI populated)
             creatorName: "Base App",
             buyerAddress: buy.counterparty || "",
-            buyerName: "", // OnchainKit handles this
+            buyerName: "",
             token: buy.token,
             amount: buy.amount,
             time: buy.time
